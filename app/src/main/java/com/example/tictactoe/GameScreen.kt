@@ -1,7 +1,9 @@
 package com.example.tictactoe
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,12 +22,14 @@ fun GameScreen() {
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
             text = "Tic Tac Toe",
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 32.dp)
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 64.dp)
         )
         GameBoard()
     }
@@ -35,7 +39,7 @@ fun GameScreen() {
 fun GameBoard() {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(0.9f)
             .aspectRatio(1f)
             .border(2.dp, Color.Black)
     ) {
@@ -45,7 +49,13 @@ fun GameBoard() {
             ) {
                 for (j in 0..2) {
                     GameCell()
+                    if (j < 2) {
+                        Spacer(modifier = Modifier.width(2.dp).fillMaxHeight().background(Color.Black))
+                    }
                 }
+            }
+            if (i < 2) {
+                Spacer(modifier = Modifier.height(2.dp).fillMaxWidth().background(Color.Black))
             }
         }
     }
@@ -56,8 +66,7 @@ fun RowScope.GameCell() {
     Box(
         modifier = Modifier
             .weight(1f)
-            .fillMaxHeight()
-            .border(1.dp, Color.Black),
+            .fillMaxHeight(),
         contentAlignment = Alignment.Center
     ) {
         Text(text = "", fontSize = 48.sp)
