@@ -18,12 +18,57 @@ import com.example.tictactoe.ui.theme.TictactoeTheme
 
 data class GameState(
     val board: List<List<Char?>> = List(3) { List(3) { null } },
-    val currentPlayer: Char = 'X'
+    val currentPlayer: Char = 'X',
+    val winner: Char? = null,
+    val isDraw: Boolean = false
 )
+
+fun checkWinner(board: List<List<Char?>>): Char? {
+    // Check rows
+    for (i in 0..2) {
+        if (board[i][0] != null && board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
+            return board[i][0]
+        }
+    }
+    // Check columns
+    for (j in 0..2) {
+        if (board[0][j] != null && board[0][j] == board[1][j] && board[1][j] == board[2][j]) {
+            return board[0][j]
+        }
+    }
+    // Check diagonals
+    if (board[0][0] != null && board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
+        return board[0][0]
+    }
+    if (board[0][2] != null && board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
+        return board[0][2]
+    }
+    return null
+}
+
+fun isBoardFull(board: List<List<Char?>>): Boolean {
+    return board.all { row -> row.all { it != null } }
+}
 
 @Composable
 fun GameScreen() {
     var gameState by remember { mutableStateOf(GameState()) }
+
+    fun handleCellClick(row: Int, col: Int) {
+        if (gameState.board[row][col] == null && gameState.winner == null && !gameState.isDraw) {
+            val newBoard = gameState.board.map { it.toMutableList() }
+            newBoard[row][col] = gameState.currentPlayer
+            val winner = checkWinner(newBoard)
+            val isDraw = isBoardFull(newBoard) && winner == null
+
+            gameState = gameState.copy(
+                board = newBoard,
+                currentPlayer = if (gameState.currentPlayer == 'X') 'O' else 'X',
+                winner = winner,
+                isDraw = isDraw
+            )
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -39,21 +84,32 @@ fun GameScreen() {
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        Text(
-            text = "Player '${gameState.currentPlayer}' turn",
-            fontSize = 24.sp,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-        GameBoard(gameState) { row, col ->
-            if (gameState.board[row][col] == null) {
-                val newBoard = gameState.board.map { it.toMutableList() }.toMutableList()
-                newBoard[row][col] = gameState.currentPlayer
-                gameState = gameState.copy(
-                    board = newBoard,
-                    currentPlayer = if (gameState.currentPlayer == 'X') 'O' else 'X'
+
+        when {
+            gameState.winner != null -> {
+                Text(
+                    text = "Player '${gameState.winner}' Wins!",
+                    fontSize = 24.sp,
+                    modifier = Modifier.padding(bottom = 32.dp)
+                )
+            }
+            gameState.isDraw -> {
+                Text(
+                    text = "It's a Draw!",
+                    fontSize = 24.sp,
+                    modifier = Modifier.padding(bottom = 32.dp)
+                )
+            }
+            else -> {
+                Text(
+                    text = "Player '${gameState.currentPlayer}' turn",
+                    fontSize = 24.sp,
+                    modifier = Modifier.padding(bottom = 32.dp)
                 )
             }
         }
+
+        GameBoard(gameState, onCellClick = ::handleCellClick)
     }
 }
 
@@ -70,7 +126,7 @@ fun GameBoard(gameState: GameState, onCellClick: (Int, Int) -> Unit) {
                 modifier = Modifier.weight(1f)
             ) {
                 for (j in 0..2) {
-                    GameCell(gameState.board[i][j]) {
+                    GameCell(player = gameState.board[i][j]) {
                         onCellClick(i, j)
                     }
                     if (j < 2) {
