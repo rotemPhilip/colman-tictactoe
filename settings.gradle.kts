@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "tictactoe"
+rootProject.name = "colman-TicTacToe"
 include(":app")
  
